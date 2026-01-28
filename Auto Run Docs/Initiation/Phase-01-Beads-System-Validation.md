@@ -39,10 +39,23 @@ This phase validates the newly implemented Beads task tracking system by verifyi
     - `Bead.depAdd()`: Verified dependency creation between beads
   - Note: `bd create` JSON output doesn't include `dependency_count` (only present in `bd list`), tests adjusted to use `Bead.list()` for verification
 
-- [ ] Verify the beads tools are properly registered and callable:
+- [x] Verify the beads tools are properly registered and callable:
   - Check that `BeadsCreateTool`, `BeadsUpdateTool`, `BeadsListTool`, `BeadsShowTool` are exported from registry
   - Verify tool parameters match the Zod schemas defined in beads.ts
   - Confirm tool descriptions are properly loaded from beads.txt
+
+  **Completion Notes (2026-01-28):**
+  - Created comprehensive test file at `packages/opencode/test/tool/beads-registry.test.ts` with 24 tests
+  - All four beads tools (`beads_create`, `beads_update`, `beads_list`, `beads_show`) are exported from registry.ts (line 9) and included in the `all()` function (lines 101-104)
+  - Tool parameters verified against Zod schemas:
+    - `BeadsCreateTool`: title (required string), description (optional string), priority (default 2, 0-4 range), type (default "task", enum), parent (optional), deps (optional array)
+    - `BeadsUpdateTool`: id (required), status (optional enum), priority (optional 0-4), title (optional), dep_add (optional array)
+    - `BeadsListTool`: filter (default "ready", enum ["ready", "all"])
+    - `BeadsShowTool`: id (required string)
+  - Tool descriptions confirmed:
+    - `BeadsCreateTool` uses full beads.txt content describing workflow, priorities, and usage guidelines
+    - Other tools have inline descriptions matching their purpose
+  - All tests pass (24/24)
 
 - [ ] Run the existing test suite and ensure no regressions from beads changes:
   - Run `bun test` to execute all tests
