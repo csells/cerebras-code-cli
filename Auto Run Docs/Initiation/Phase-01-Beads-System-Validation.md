@@ -18,7 +18,7 @@ This phase validates the newly implemented Beads task tracking system by verifyi
   - Note: bd shows a warning when creating issues with "Test" prefix in production database, suggests using `BEADS_DB=/tmp/test.db` for testing
   - No strict version requirements identified; v0.49.0 works correctly with the implemented schema
 
-- [ ] Test the Bead namespace functions in isolation:
+- [x] Test the Bead namespace functions in isolation:
   - Create a test file at `packages/opencode/test/session/bead.test.ts`
   - Test `Bead.init()` creates `.beads/` directory when missing
   - Test `Bead.create()` with various input combinations (title only, with description, with priority, with type, with parent, with deps)
@@ -26,6 +26,18 @@ This phase validates the newly implemented Beads task tracking system by verifyi
   - Test `Bead.get()` returns bead info for valid ID, undefined for invalid ID
   - Test `Bead.update()` for status changes including "closed" special case
   - Test `Bead.depAdd()` adds dependencies correctly
+
+  **Completion Notes (2026-01-28):**
+  - Created comprehensive test file at `packages/opencode/test/session/bead.test.ts` with 19 tests
+  - All tests pass using isolated temp directories (via `tmpdir` fixture with git init)
+  - Tests cover all Bead namespace functions as specified:
+    - `Bead.init()`: Verified .beads/ creation and idempotency
+    - `Bead.create()`: Tested with title only, description, priority, type, parent, and dependencies
+    - `Bead.list()`: Verified filters for undefined (open), "ready", and "all" (including closed)
+    - `Bead.get()`: Verified returns info for valid ID, undefined for invalid
+    - `Bead.update()`: Tested status, priority, title updates, and special "closed" case
+    - `Bead.depAdd()`: Verified dependency creation between beads
+  - Note: `bd create` JSON output doesn't include `dependency_count` (only present in `bd list`), tests adjusted to use `Bead.list()` for verification
 
 - [ ] Verify the beads tools are properly registered and callable:
   - Check that `BeadsCreateTool`, `BeadsUpdateTool`, `BeadsListTool`, `BeadsShowTool` are exported from registry
