@@ -57,7 +57,16 @@ This phase validates the newly implemented Beads task tracking system by verifyi
     - Other tools have inline descriptions matching their purpose
   - All tests pass (24/24)
 
-- [ ] Run the existing test suite and ensure no regressions from beads changes:
+- [x] Run the existing test suite and ensure no regressions from beads changes:
   - Run `bun test` to execute all tests
   - Note any failures unrelated to beads (pre-existing issues)
   - Confirm no new failures introduced by the beads system
+
+  **Completion Notes (2026-01-28):**
+  - Ran full test suite with `bun test`: 292 pass, 1 skip, 31 fail across 324 tests
+  - **No new failures introduced by the beads system** - all 43 beads-related tests pass (19 in bead.test.ts, 24 in beads-registry.test.ts)
+  - Pre-existing failures identified (unrelated to beads):
+    - **Enterprise package (15 failures)**: share.test.ts (9) and storage.test.ts (6) - require `OPENCODE_STORAGE_ADAPTER` environment variable (R2/S3 config)
+    - **SerializeAddon tests (9 failures)**: Terminal/ANSI serialization tests - pre-existing terminal rendering issues
+    - **Session retry tests (7 failures)**: retry.test.ts - test expectations don't match current implementation after "fix exponential backoff" commit (42ce88a0) changed from exponential to hand-tuned schedule
+  - Opencode package tests: 291 pass, 1 skip, 7 fail (only retry failures)
