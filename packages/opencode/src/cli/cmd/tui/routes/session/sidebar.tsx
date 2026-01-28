@@ -232,7 +232,73 @@ export function Sidebar(props: { sessionID: string }) {
   const dialog = useDialog()
   const session = createMemo(() => sync.session.get(props.sessionID)!)
   const diff = createMemo(() => sync.data.session_diff[props.sessionID] ?? [])
-  const todo = createMemo(() => sync.data.todo[props.sessionID] ?? [])
+  type BeadInfo = (typeof sync.data.beads)[number]
+  type BeadNode = { bead: BeadInfo; children: BeadNode[] }
+
+  const beadTree = createMemo(() => {
+    const all = sync.data.beads
+    const idSet = new Set(all.map((b) => b.id))
+    const childMap = new Map<string, BeadInfo[]>()
+
+    // Group children under their direct parents
+    for (const bead of all) {
+      const dotIndex = bead.id.lastIndexOf(".")
+      const parentId = dotIndex > 0 ? bead.id.slice(0, dotIndex) : null
+      if (parentId && idSet.has(parentId)) {
+        const children = childMap.get(parentId) ?? []
+        children.push(bead)
+        childMap.set(parentId, children)
+      }
+    }
+
+    // Recursively build node tree
+    function buildNode(bead: BeadInfo): BeadNode {
+      const directChildren = childMap.get(bead.id) ?? []
+      return { bead, children: directChildren.map(buildNode) }
+    }
+
+    // Build roots: non-closed items that aren't children of another bead
+    const roots: BeadNode[] = []
+    for (const bead of all) {
+      const dotIndex = bead.id.lastIndexOf(".")
+      const parentId = dotIndex > 0 ? bead.id.slice(0, dotIndex) : null
+      const isChild = parentId && idSet.has(parentId)
+      if (isChild) continue
+      if (bead.status === "closed") continue
+      roots.push(buildNode(bead))
+    }
+    return roots
+  })
+
+  function countNodes(nodes: BeadNode[]): number {
+    return nodes.reduce((n, node) => n + 1 + countNodes(node.children), 0)
+  }
+  const beadCount = createMemo(() => countNodes(beadTree()))
+
+  function BeadNodeView(p: { node: BeadNode; depth: number }) {
+    const indent = "  ".repeat(p.depth)
+    const statusIcon = (status: string) =>
+      status === "closed" ? "✓ " : status === "in_progress" ? "● " : status === "blocked" ? "◌ " : "○ "
+    const statusColor = (status: string) =>
+      status === "closed"
+        ? theme.textMuted
+        : status === "in_progress"
+          ? theme.success
+          : status === "blocked"
+            ? theme.warning
+            : theme.textMuted
+    return (
+      <box>
+        <text style={{ fg: statusColor(p.node.bead.status) }}>
+          {indent}{statusIcon(p.node.bead.status)}{p.node.bead.title}
+        </text>
+        <For each={p.node.children}>
+          {(child) => <BeadNodeView node={child} depth={p.depth + 1} />}
+        </For>
+      </box>
+    )
+  }
+
   const messages = createMemo(() => sync.data.message[props.sessionID] ?? [])
 
   // Track whether we've shown the low cache warning for this session
@@ -241,8 +307,8 @@ export function Sidebar(props: { sessionID: string }) {
 
   const [expanded, setExpanded] = createStore({
     mcp: true,
+    beads: true,
     diff: true,
-    todo: true,
     lsp: true,
   })
 
@@ -600,27 +666,23 @@ export function Sidebar(props: { sessionID: string }) {
                 </For>
               </Show>
             </box>
-            <Show when={todo().length > 0 && todo().some((t) => t.status !== "completed")}>
+            <Show when={beadCount() > 0}>
               <box>
                 <box
                   flexDirection="row"
                   gap={1}
-                  onMouseDown={() => todo().length > 2 && setExpanded("todo", !expanded.todo)}
+                  onMouseDown={() => beadCount() > 2 && setExpanded("beads", !expanded.beads)}
                 >
-                  <Show when={todo().length > 2}>
-                    <text fg={theme.text}>{expanded.todo ? "▼" : "▶"}</text>
+                  <Show when={beadCount() > 2}>
+                    <text fg={theme.text}>{expanded.beads ? "▼" : "▶"}</text>
                   </Show>
                   <text fg={theme.text}>
-                    <b>Todo</b>
+                    <b>Beads</b>
                   </text>
                 </box>
-                <Show when={todo().length <= 2 || expanded.todo}>
-                  <For each={todo()}>
-                    {(todo) => (
-                      <text style={{ fg: todo.status === "in_progress" ? theme.success : theme.textMuted }}>
-                        [{todo.status === "completed" ? "✓" : " "}] {todo.content}
-                      </text>
-                    )}
+                <Show when={beadCount() <= 2 || expanded.beads}>
+                  <For each={beadTree()}>
+                    {(node) => <BeadNodeView node={node} depth={0} />}
                   </For>
                 </Show>
               </box>

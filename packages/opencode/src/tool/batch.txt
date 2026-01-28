@@ -14,7 +14,7 @@ Rules:
 Disallowed Tools:
 - batch (no nesting)
 - edit (run edits separately)
-- todoread (call directly – lightweight)
+- beads_list (call directly – lightweight)
 
 When NOT to Use:
 - Operations that depend on prior tool output (e.g. create then read same file)

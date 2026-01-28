@@ -643,8 +643,10 @@ export const GithubRunCommand = cmd({
 
       function subscribeSessionEvents() {
         const TOOL: Record<string, [string, string]> = {
-          todowrite: ["Todo", UI.Style.TEXT_WARNING_BOLD],
-          todoread: ["Todo", UI.Style.TEXT_WARNING_BOLD],
+          beads_create: ["Beads", UI.Style.TEXT_WARNING_BOLD],
+          beads_update: ["Beads", UI.Style.TEXT_WARNING_BOLD],
+          beads_list: ["Beads", UI.Style.TEXT_WARNING_BOLD],
+          beads_show: ["Beads", UI.Style.TEXT_WARNING_BOLD],
           bash: ["Bash", UI.Style.TEXT_DANGER_BOLD],
           edit: ["Edit", UI.Style.TEXT_SUCCESS_BOLD],
           glob: ["Glob", UI.Style.TEXT_INFO_BOLD],

@@ -105,8 +105,8 @@ export namespace Agent {
         name: "general",
         description: `General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.`,
         tools: {
-          todoread: false,
-          todowrite: false,
+          beads_create: false,
+          beads_update: false,
           ...defaultTools,
         },
         options: {},
@@ -117,8 +117,8 @@ export namespace Agent {
       explore: {
         name: "explore",
         tools: {
-          todoread: false,
-          todowrite: false,
+          beads_create: false,
+          beads_update: false,
           edit: false,
           write: false,
           ...defaultTools,

@@ -33,7 +33,6 @@ import type { ReadTool } from "@/tool/read"
 import type { WriteTool } from "@/tool/write"
 import { BashTool } from "@/tool/bash"
 import type { GlobTool } from "@/tool/glob"
-import { TodoWriteTool } from "@/tool/todo"
 import type { GrepTool } from "@/tool/grep"
 import type { ListTool } from "@/tool/ls"
 import type { EditTool } from "@/tool/edit"
@@ -1663,30 +1662,63 @@ ToolRegistry.register<typeof PatchTool>({
   },
 })
 
-ToolRegistry.register<typeof TodoWriteTool>({
-  name: "todowrite",
+
+ToolRegistry.register<typeof import("@/tool/beads").BeadsCreateTool>({
+  name: "beads_create",
   container: "block",
   render(props) {
     const { theme } = useTheme()
+    const bead = props.metadata.bead
     return (
-      <>
-        <Show when={!props.input.todos?.length}>
-          <ToolTitle icon="⚙" fallback="Updating todos..." when={true}>
-            Updating todos...
-          </ToolTitle>
-        </Show>
-        <Show when={props.metadata.todos?.length}>
-          <box>
-            <For each={props.input.todos ?? []}>
-              {(todo) => (
-                <text style={{ fg: todo.status === "in_progress" ? theme.success : theme.textMuted }}>
-                  [{todo.status === "completed" ? "✓" : " "}] {todo.content}
-                </text>
-              )}
-            </For>
-          </box>
-        </Show>
-      </>
+      <Show when={bead} fallback={<ToolTitle icon="⚙" fallback="Creating bead..." when={true}>Creating bead...</ToolTitle>}>
+        {(b) => (
+          <text fg={theme.success}>
+            [P{b().priority} ○] {b().id}: {b().title}
+          </text>
+        )}
+      </Show>
+    )
+  },
+})
+
+ToolRegistry.register<typeof import("@/tool/beads").BeadsUpdateTool>({
+  name: "beads_update",
+  container: "inline",
+  render(props) {
+    return <ToolTitle icon="⚙" fallback="Updating bead..." when={!!props.input.id}>Updated {props.input.id}</ToolTitle>
+  },
+})
+
+ToolRegistry.register<typeof import("@/tool/beads").BeadsListTool>({
+  name: "beads_list",
+  container: "block",
+  render(props) {
+    const { theme } = useTheme()
+    const beads = props.metadata.beads
+    return (
+      <Show
+        when={beads?.length}
+        fallback={<ToolTitle icon="⚙" fallback="Listing beads..." when={true}>No active beads</ToolTitle>}
+      >
+        <box>
+          <For each={beads ?? []}>
+            {(bead) => (
+              <text
+                style={{
+                  fg:
+                    bead.status === "in_progress"
+                      ? theme.success
+                      : bead.status === "blocked"
+                        ? theme.warning
+                        : theme.textMuted,
+                }}
+              >
+                [P{bead.priority} {bead.status === "in_progress" ? "●" : "○"}] {bead.id}: {bead.title}
+              </text>
+            )}
+          </For>
+        </box>
+      </Show>
     )
   },
 })

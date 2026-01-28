@@ -66,8 +66,10 @@ const AgentCreateCommand = cmd({
           "grep",
           "webfetch",
           "task",
-          "todowrite",
-          "todoread",
+          "beads_create",
+          "beads_update",
+          "beads_list",
+          "beads_show",
         ]
 
         const selectedTools = await prompts.multiselect({

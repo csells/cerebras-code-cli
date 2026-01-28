@@ -97,8 +97,8 @@ export const TaskTool = Tool.define("task", async () => {
         },
         agent: agent.name,
         tools: {
-          todowrite: false,
-          todoread: false,
+          beads_create: false,
+          beads_update: false,
           task: false,
           ...Object.fromEntries((config.experimental?.primary_tools ?? []).map((t) => [t, false])),
           ...agent.tools,
