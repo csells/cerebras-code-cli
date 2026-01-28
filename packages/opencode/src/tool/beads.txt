@@ -1,0 +1,31 @@
+Create a new bead (work item) to track a task, bug, feature, or epic. Beads form a dependency graph (DAG) that tracks what work is ready, blocked, or in progress.
+
+## When to Use
+
+- When starting a multi-step task (3+ steps), create beads for each step with appropriate dependencies
+- When the user provides multiple tasks or a complex request
+- Use type 'epic' for parent items, then create child tasks with --parent
+- Use deps to express "A blocks B" relationships (B cannot start until A is done)
+
+## Priorities
+
+- 0 = Critical (must do now)
+- 1 = High (do next)
+- 2 = Medium (default)
+- 3 = Low (when time allows)
+- 4 = Backlog (someday)
+
+## Workflow
+
+1. Break work into beads with dependencies: if task B needs task A done first, create A, then create B with deps [{type: "blocks", id: "<A's id>"}]
+2. Use beads_list with filter "ready" to find the highest-priority unblocked work
+3. Use beads_update to set status to "in_progress" when starting a bead
+4. Use beads_update to set status to "closed" when done
+5. Check beads_list "ready" again to find the next item
+
+## Key Rules
+
+- Only one bead should be "in_progress" at a time
+- Always close beads when the work is complete
+- Use dependencies to express ordering — don't rely on creation order
+- Provide descriptions for non-obvious tasks

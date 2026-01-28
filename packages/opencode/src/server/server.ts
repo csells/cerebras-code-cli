@@ -33,13 +33,18 @@ import { SessionPrompt } from "../session/prompt"
 import { SessionCompaction } from "../session/compaction"
 import { SessionRevert } from "../session/revert"
 import { lazy } from "../util/lazy"
-import { Todo } from "../session/todo"
 import { InstanceBootstrap } from "../project/bootstrap"
 import { MCP } from "../mcp"
 import { Storage } from "../storage/storage"
 import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { TuiEvent } from "@/cli/cmd/tui/event"
+import { Bead } from "@/session/bead"
+import { RateLimit } from "@/ratelimit"
 import { Snapshot } from "@/snapshot"
+
+// Ensure Bead and RateLimit events are registered in Bus registry for OpenAPI spec generation
+void Bead.Event
+void RateLimit.Event
 import { SessionSummary } from "@/session/summary"
 import { GlobalBus } from "@/bus/global"
 import { SessionStatus } from "@/session/status"
@@ -636,36 +641,6 @@ export namespace Server {
           const sessionID = c.req.valid("param").sessionID
           const session = await Session.children(sessionID)
           return c.json(session)
-        },
-      )
-      .get(
-        "/session/:sessionID/todo",
-        describeRoute({
-          summary: "Get session todos",
-          description: "Retrieve the todo list associated with a specific session, showing tasks and action items.",
-          operationId: "session.todo",
-          responses: {
-            200: {
-              description: "Todo list",
-              content: {
-                "application/json": {
-                  schema: resolver(Todo.Info.array()),
-                },
-              },
-            },
-            ...errors(400, 404),
-          },
-        }),
-        validator(
-          "param",
-          z.object({
-            sessionID: z.string().meta({ description: "Session ID" }),
-          }),
-        ),
-        async (c) => {
-          const sessionID = c.req.valid("param").sessionID
-          const todos = await Todo.get(sessionID)
-          return c.json(todos)
         },
       )
       .post(

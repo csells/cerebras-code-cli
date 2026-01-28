@@ -6532,56 +6532,204 @@
           "properties"
         ]
       },
-      "Todo": {
+      "Bead": {
         "type": "object",
+        "description": "A task/work item in the beads dependency graph",
         "properties": {
-          "content": {
-            "description": "Brief description of the task",
+          "id": {
+            "description": "Unique identifier for the bead",
+            "type": "string"
+          },
+          "title": {
+            "description": "Title of the bead/task",
+            "type": "string"
+          },
+          "description": {
+            "description": "Detailed description of the task",
             "type": "string"
           },
           "status": {
-            "description": "Current status of the task: pending, in_progress, completed, cancelled",
+            "description": "Current status: open, in_progress, blocked, deferred, closed",
             "type": "string"
           },
           "priority": {
-            "description": "Priority level of the task: high, medium, low",
+            "description": "Priority level: 0=Critical, 1=High, 2=Medium, 3=Low, 4=Backlog",
+            "type": "number"
+          },
+          "issue_type": {
+            "description": "Type of issue: task, epic, bug, feature, chore",
             "type": "string"
           },
-          "id": {
-            "description": "Unique identifier for the todo item",
+          "owner": {
+            "description": "Owner of the bead",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "ISO timestamp when created",
+            "type": "string"
+          },
+          "created_by": {
+            "description": "Who created the bead",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "ISO timestamp when last updated",
+            "type": "string"
+          },
+          "dependency_count": {
+            "description": "Number of beads this depends on",
+            "type": "number"
+          },
+          "dependent_count": {
+            "description": "Number of beads depending on this",
+            "type": "number"
+          },
+          "closed_at": {
+            "description": "ISO timestamp when closed",
+            "type": "string"
+          },
+          "close_reason": {
+            "description": "Reason for closing",
             "type": "string"
           }
         },
         "required": [
-          "content",
+          "id",
+          "title",
           "status",
           "priority",
-          "id"
+          "issue_type"
         ]
       },
-      "Event.todo.updated": {
+      "RateLimitWindowInfo": {
+        "type": "object",
+        "description": "Rate limit information for a specific time window",
+        "properties": {
+          "remaining": {
+            "description": "Remaining requests/tokens in this window",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Total limit for this window",
+            "type": "number"
+          },
+          "reset": {
+            "description": "When the window resets",
+            "type": "string"
+          },
+          "window": {
+            "description": "Time window: minute, hour, day, or unknown",
+            "type": "string"
+          }
+        },
+        "required": [
+          "remaining",
+          "limit",
+          "window"
+        ]
+      },
+      "RateLimitInfo": {
+        "type": "object",
+        "description": "Rate limit information for a provider",
+        "properties": {
+          "providerID": {
+            "description": "Provider identifier",
+            "type": "string"
+          },
+          "remainingRequests": {
+            "description": "Legacy: remaining requests",
+            "type": "number"
+          },
+          "limitRequests": {
+            "description": "Legacy: request limit",
+            "type": "number"
+          },
+          "remainingTokens": {
+            "description": "Legacy: remaining tokens",
+            "type": "number"
+          },
+          "limitTokens": {
+            "description": "Legacy: token limit",
+            "type": "number"
+          },
+          "resetRequests": {
+            "description": "Legacy: when requests reset",
+            "type": "string"
+          },
+          "resetTokens": {
+            "description": "Legacy: when tokens reset",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "When this info was last updated",
+            "type": "number"
+          },
+          "requestLimits": {
+            "description": "All rate limits for requests by window",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RateLimitWindowInfo"
+            }
+          },
+          "tokenLimits": {
+            "description": "All rate limits for tokens by window",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RateLimitWindowInfo"
+            }
+          }
+        },
+        "required": [
+          "providerID"
+        ]
+      },
+      "Event.bead.updated": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "const": "todo.updated"
+            "const": "bead.updated"
           },
           "properties": {
             "type": "object",
             "properties": {
-              "sessionID": {
-                "type": "string"
-              },
-              "todos": {
+              "beads": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Todo"
+                  "$ref": "#/components/schemas/Bead"
                 }
               }
             },
             "required": [
-              "sessionID",
-              "todos"
+              "beads"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "properties"
+        ]
+      },
+      "Event.ratelimit.update": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "ratelimit.update"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "providerID": {
+                "type": "string"
+              },
+              "info": {
+                "$ref": "#/components/schemas/RateLimitInfo"
+              }
+            },
+            "required": [
+              "providerID",
+              "info"
             ]
           }
         },
@@ -7263,7 +7411,10 @@
             "$ref": "#/components/schemas/Event.file.edited"
           },
           {
-            "$ref": "#/components/schemas/Event.todo.updated"
+            "$ref": "#/components/schemas/Event.bead.updated"
+          },
+          {
+            "$ref": "#/components/schemas/Event.ratelimit.update"
           },
           {
             "$ref": "#/components/schemas/Event.command.executed"

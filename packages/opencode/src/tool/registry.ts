@@ -6,7 +6,7 @@ import { ListTool } from "./ls"
 import { BatchTool } from "./batch"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
-import { TodoWriteTool, TodoReadTool } from "./todo"
+import { BeadsCreateTool, BeadsUpdateTool, BeadsListTool, BeadsShowTool } from "./beads"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
@@ -98,8 +98,10 @@ export namespace ToolRegistry {
       TaskTool,
       SkillTool,
       WebFetchTool,
-      TodoWriteTool,
-      TodoReadTool,
+      BeadsCreateTool,
+      BeadsUpdateTool,
+      BeadsListTool,
+      BeadsShowTool,
       WebSearchTool,
       CodeSearchTool,
       SwitchModeTool,

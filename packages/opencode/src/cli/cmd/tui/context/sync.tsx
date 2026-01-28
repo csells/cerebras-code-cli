@@ -5,7 +5,6 @@ import type {
   Session,
   Part,
   Config,
-  Todo,
   Command,
   Permission,
   LspStatus,
@@ -19,6 +18,7 @@ import type {
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useSDK } from "@tui/context/sdk"
 import { Binary } from "@opencode-ai/util/binary"
+import type { Bead } from "@/session/bead"
 import { createSimpleContext } from "./helper"
 import type { Snapshot } from "@/snapshot"
 import { useExit } from "./exit"
@@ -48,9 +48,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       session_diff: {
         [sessionID: string]: Snapshot.FileDiff[]
       }
-      todo: {
-        [sessionID: string]: Todo[]
-      }
       message: {
         [sessionID: string]: Message[]
       }
@@ -63,6 +60,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       }
       formatter: FormatterStatus[]
       vcs: VcsInfo | undefined
+      beads: Bead.Info[]
       ratelimit: {
         [providerID: string]: RateLimit.Info
       }
@@ -83,12 +81,12 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       session: [],
       session_status: {},
       session_diff: {},
-      todo: {},
       message: {},
       part: {},
       lsp: [],
       mcp: {},
       formatter: [],
+      beads: [],
       vcs: undefined,
       ratelimit: {},
     })
@@ -132,10 +130,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           )
           break
         }
-
-        case "todo.updated":
-          setStore("todo", event.properties.sessionID, event.properties.todos)
-          break
 
         case "session.diff":
           setStore("session_diff", event.properties.sessionID, event.properties.diff)
@@ -254,8 +248,16 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         }
       }
 
-      // Handle ratelimit.update separately since it's not in generated SDK types yet
-      if ((event.type as string) === "ratelimit.update") {
+      // Handle bead.updated and ratelimit.update events
+      // These are registered via Bus.event() but not yet in the SDK types.
+      // Once the SDK is regenerated from the updated OpenAPI spec, these can
+      // be moved into the switch statement above.
+      const eventType = event.type as string
+      if (eventType === "bead.updated") {
+        const props = event.properties as unknown as { beads?: Bead.Info[] }
+        setStore("beads", props.beads ?? [])
+      }
+      if (eventType === "ratelimit.update") {
         const props = event.properties as unknown as { providerID?: string; info?: RateLimit.Info }
         if (props.providerID && props.info) {
           setStore("ratelimit", props.providerID, props.info)
@@ -345,10 +347,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         },
         async sync(sessionID: string) {
           if (fullSyncedSessions.has(sessionID)) return
-          const [session, messages, todo, diff] = await Promise.all([
+          const [session, messages, diff] = await Promise.all([
             sdk.client.session.get({ sessionID }, { throwOnError: true }),
             sdk.client.session.messages({ sessionID, limit: 100 }),
-            sdk.client.session.todo({ sessionID }),
             sdk.client.session.diff({ sessionID }),
           ])
           setStore(
@@ -356,7 +357,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               const match = Binary.search(draft.session, sessionID, (s) => s.id)
               if (match.found) draft.session[match.index] = session.data!
               if (!match.found) draft.session.splice(match.index, 0, session.data!)
-              draft.todo[sessionID] = todo.data ?? []
               draft.message[sessionID] = messages.data!.map((x) => x.info)
               for (const message of messages.data!) {
                 draft.part[message.info.id] = message.parts

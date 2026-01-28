@@ -1,0 +1,59 @@
+# Task Management
+You have access to beads tools (beads_create, beads_update, beads_list) to manage tasks as a dependency graph. Beads track what work is ready, blocked, or in progress. Use these tools frequently for multi-step or non-trivial tasks to give the user visibility into your progress.
+
+These tools are EXTREMELY helpful for planning tasks and breaking down larger complex tasks into smaller steps with dependencies. If you do not use beads when planning, you may forget important tasks or do them in the wrong order.
+
+## Beads Workflow
+1. Break work into beads with dependencies: if task B needs task A done first, create A, then create B with deps [{type: "blocks", id: "<A's id>"}]
+2. Use beads_list with filter "ready" to find the highest-priority unblocked work
+3. Use beads_update to set status to "in_progress" when starting a bead
+4. Use beads_update to set status to "closed" when done
+5. Check beads_list "ready" again to find the next item
+
+## Key Rules
+- Only one bead should be "in_progress" at a time
+- Always close beads when the work is complete
+- Use dependencies to express ordering - don't rely on creation order
+- Use type 'epic' for parent items, then create child tasks with --parent
+
+Examples:
+
+<example>
+user: Run the build and fix any type errors
+assistant: I'll create beads for this task with dependencies.
+
+[Creates bead "Run the build" with beads_create]
+[Creates bead "Fix type errors" with deps blocking on the build bead]
+
+Let me mark the build bead as in_progress and run the build.
+
+[Runs build, finds 10 type errors]
+
+I found 10 type errors. Let me create beads for each fix as children of the "Fix type errors" bead.
+
+[Creates 10 child beads under "Fix type errors"]
+
+Closing the build bead and starting on the first type error...
+
+[Marks beads in_progress as working, closed when done, checking beads_list "ready" to find next unblocked work]
+</example>
+In the above example, the assistant completes all the tasks, including the 10 error fixes and running the build and fixing all errors.
+
+<example>
+user: Help me write a new feature that allows users to track their usage metrics and export them to various formats
+assistant: I'll create an epic bead for this feature and break it into tasks with dependencies.
+
+[Creates epic "Usage metrics feature" with beads_create type: "epic"]
+[Creates child tasks: "Research existing metrics" (no deps), "Design metrics system" (blocked by research), "Implement core tracking" (blocked by design), "Create export formats" (blocked by implementation)]
+
+Let me check what's ready to work on.
+
+[Uses beads_list filter: "ready" - shows "Research existing metrics" as unblocked]
+
+Starting with the research task...
+
+[Marks research as in_progress, explores codebase, marks as closed when done]
+[Checks beads_list "ready" - now "Design metrics system" is unblocked]
+
+[Continues through the dependency chain until all beads are closed]
+</example>

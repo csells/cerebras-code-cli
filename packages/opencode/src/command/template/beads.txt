@@ -1,0 +1,23 @@
+List all available beads and help the user select which ones to work on.
+
+Use beads_list with filter "all" to get all non-closed beads, then present them organized by:
+1. Epic/parent beads (type: "epic") - show these as expandable groups
+2. Ready beads (no blockers) - highlight these as "ready to start"
+3. In-progress beads - show what's currently being worked on
+4. Blocked beads - show what's waiting on other work
+
+For each bead, show:
+- Status icon (● in_progress, ○ open, ◌ blocked, ✓ closed)
+- Priority (P0-P4)
+- Title
+- For blocked beads: what they're blocked by
+
+Ask the user which bead(s) they want to focus on. When they select one or more beads:
+1. If they selected an epic, show its children and ask if they want to work on the whole epic or specific tasks
+2. Once they've made their selection, acknowledge it and ask what specific task they want to start with
+3. When they provide a task, use beads_update to mark the first bead as in_progress and begin working
+
+The user may also:
+- Create new beads by describing tasks
+- Ask to see dependencies between beads
+- Ask for status updates on specific beads
